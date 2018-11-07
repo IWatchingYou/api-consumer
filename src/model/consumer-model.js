@@ -53,7 +53,8 @@ const consumer = mongoose.Schema({
   empother_vill_eng: String,
   empother_vill_khm: String,
   created: Date,
-  updated: Date
+  updated: Date,
+  uploaded: Boolean
 });
 
 module.exports = mongoose.model('consumers', consumer);

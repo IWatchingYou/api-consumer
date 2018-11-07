@@ -56,7 +56,8 @@ exports.CREATE = (req, res) => {
     empother_vill_eng: rb.empother_vill_eng,
     empother_vill_khm: rb.empother_vill_khm,
     created: new Date(),
-    updated: new Date()
+    updated: new Date(),
+    uploaded: false
   })
   .save()
   .then(()=>{
@@ -71,9 +72,21 @@ exports.CREATE = (req, res) => {
   })
 }
 
+exports.COUNT = (req, res) =>{
+  Consumer.countDocuments().then(count=>{
+    res.status(200).send({
+      count: count
+    });
+  })
+  .catch(err=>{
+    res.status(400).send(err)
+  })
+}
+
 exports.READ = (req, res) => {
+  const skip = 10 * (req.params.page - 1);
   Consumer
-    .find().exec()
+    .find().skip(skip).limit(10).sort({created: -1}).exec()
     .then(data => {
       if (!data[0]) {
         res.status(200).send({
@@ -81,7 +94,7 @@ exports.READ = (req, res) => {
         })
         return;
       }
-      res.status(200).send(data)
+      res.status(200).send(data);
     })
     .catch(err => {
       res.status(400).send(err)
@@ -159,16 +172,16 @@ exports.UPDATE = (req, res) => {
     emp_house: rb.emp_house,
     empother_vill_eng: rb.empother_vill_eng,
     empother_vill_khm: rb.empother_vill_khm,
-    updated: new Date()
-  })
+    updated: new Date(),
+  }).exec()
   .then(()=>{
     res.status(200).send({
       message: 'success'
     })
   })
-  .catch(()=>{
+  .catch(err=>{
     res.status(400).send({
-      message: 'fail'
+      message: err
     })
   })
 }
@@ -186,5 +199,33 @@ exports.DELETE = (req, res) => {
     res.status(400).send({
       message: err
     })
+  })
+}
+
+exports.SEARCH = (req, res) =>{
+  const search = new RegExp(req.query.name, 'i');
+
+  Consumer.find({
+    $or:[
+      {finame_eng: search},
+      {faname_eng: search},
+      {finame_khm: search},
+      {faname_khm: search},
+      {phone_number: search}
+    ]
+  })
+  .sort({created: 1})
+  .exec()
+  .then(data=>{
+    if (!data[0]) {
+      res.status(200).send({
+        message: 'not found consumer.'
+      })
+      return;
+    }
+    res.status(200).send(data);
+  })
+  .catch(err=>{
+    res.status(400).send(err);
   })
 }
